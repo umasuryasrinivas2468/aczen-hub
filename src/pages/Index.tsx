@@ -1,14 +1,24 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import DashboardLayout from "@/components/DashboardLayout";
+import PunchCard from "@/components/PunchCard";
+import WorkUpdateCard from "@/components/WorkUpdateCard";
+import StatusCards from "@/components/StatusCards";
 
-const Index = () => {
+export default function Index() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
-};
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Welcome back. Here's your daily overview.</p>
+        </div>
 
-export default Index;
+        <StatusCards />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <PunchCard />
+          <WorkUpdateCard />
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
