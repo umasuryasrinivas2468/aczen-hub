@@ -6,9 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Uploads from "./pages/Uploads";
+import Assignments from "./pages/Assignments";
+import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import CreateAssignment from "./pages/CreateAssignment";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +38,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/cofaczen" element={<AdminDashboard />} />
+            <Route path="/cofaczen/create-assignment" element={<CreateAssignment />} />
+            <Route path="/assignments" element={<ProtectedRoute><Assignments /></ProtectedRoute>} />
+            <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/login/*" element={<Login />} />
             <Route path="/signup/*" element={<Signup />} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />

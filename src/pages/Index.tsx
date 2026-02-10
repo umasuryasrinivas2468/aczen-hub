@@ -2,6 +2,9 @@ import DashboardLayout from "@/components/DashboardLayout";
 import PunchCard from "@/components/PunchCard";
 import WorkUpdateCard from "@/components/WorkUpdateCard";
 import StatusCards from "@/components/StatusCards";
+import MyWeeklySummary from "@/components/MyWeeklySummary";
+import MyAssignments from "@/components/MyAssignments";
+import TasksCalendar from "@/components/TasksCalendar";
 
 export default function Index() {
   return (
@@ -14,10 +17,16 @@ export default function Index() {
 
         <StatusCards />
 
+        <MyWeeklySummary />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <PunchCard />
           <WorkUpdateCard />
         </div>
+
+        <MyAssignments />
+
+        <TasksCalendar />
       </div>
     </DashboardLayout>
   );
