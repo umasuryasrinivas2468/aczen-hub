@@ -1,12 +1,14 @@
 import { useClerk, useUser } from "@clerk/clerk-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Upload, LogOut, Zap, ListTodo, Calendar } from "lucide-react";
+import { LayoutDashboard, Upload, LogOut, Zap, ListTodo, Calendar, MessageSquare, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Dashboard", path: "/", icon: LayoutDashboard },
   { label: "Assignments", path: "/assignments", icon: ListTodo },
   { label: "Calendar", path: "/calendar", icon: Calendar },
+  { label: "Chat", path: "/chat", icon: MessageSquare },
+  { label: "Email", path: "/email", icon: Mail },
   { label: "Uploads", path: "/uploads", icon: Upload },
 ];
 
