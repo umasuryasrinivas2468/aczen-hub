@@ -36,7 +36,7 @@ export default function MyAssignments() {
       if (error) {
         console.warn("Error fetching assignments:", error);
       } else {
-        setTasks(data || []);
+        setTasks((data || []) as Task[]);
       }
     } catch (err) {
       console.error("Error:", err);

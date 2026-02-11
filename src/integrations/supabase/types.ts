@@ -200,6 +200,30 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          clerk_user_id: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          clerk_user_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          clerk_user_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       work_updates: {
         Row: {
           clerk_user_id: string

@@ -91,7 +91,7 @@ export default function AdminDashboard() {
         console.log("Tasks fetched:", tasksData?.length || 0);
       }
 
-      setTasks(tasksData || []);
+      setTasks((tasksData || []) as Task[]);
 
       // Fetch all punches
       const { data: punchesData, error: punchError } = await supabase
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
         console.log("Punches fetched:", punchesData?.length || 0);
       }
 
-      setPunches(punchesData || []);
+      setPunches((punchesData || []) as Punch[]);
 
       // Fetch all work updates for activity feed
       const { data: workUpdatesData, error: workUpdatesError } = await supabase
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
       setWorkUpdates(workUpdatesData || []);
 
       // Fetch user profiles for display name mapping
-      const { data: userProfilesData, error: profileError } = await supabase
+      const { data: userProfilesData, error: profileError } = await (supabase as any)
         .from("user_profiles")
         .select("*");
 
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
       }
 
       const userProfileMap = new Map(
-        (userProfilesData || []).map((up) => [up.clerk_user_id, up])
+        (userProfilesData || []).map((up: any) => [up.clerk_user_id, up])
       );
 
       // Get all actual users from Clerk activity
@@ -168,9 +168,9 @@ export default function AdminDashboard() {
 
       // Calculate user statistics
       const userMap = new Map<string, UserStats>();
-      (tasksData || []).forEach((task: Task) => {
+      ((tasksData || []) as Task[]).forEach((task: Task) => {
         if (!userMap.has(task.assigned_to)) {
-          const profile = userProfileMap.get(task.assigned_to);
+          const profile = userProfileMap.get(task.assigned_to) as any;
           userMap.set(task.assigned_to, {
             id: task.assigned_to,
             email: profile?.email || task.assigned_to,
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
       // Add users with activity but no tasks
       allClerkUserIds.forEach((userId) => {
         if (!userMap.has(userId)) {
-          const profile = userProfileMap.get(userId);
+          const profile = userProfileMap.get(userId) as any;
           userMap.set(userId, {
             id: userId,
             email: profile?.email || userId,
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
       console.log("Final user stats:", finalUserStats.length, finalUserStats);
 
       setUserStats(finalUserStats);
-      applyFilters(tasksData || [], "", "", "", "");
+      applyFilters((tasksData || []) as Task[], "", "", "", "");
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
