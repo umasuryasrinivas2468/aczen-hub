@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          recipient_clerk_user_id: string
+          sender_clerk_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          recipient_clerk_user_id: string
+          sender_clerk_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          recipient_clerk_user_id?: string
+          sender_clerk_user_id?: string
+        }
+        Relationships: []
+      }
       lead_uploads: {
         Row: {
           clerk_user_id: string
@@ -71,6 +95,111 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          last_activity: string | null
+          priority: string
+          remarks: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          last_activity?: string | null
+          priority?: string
+          remarks?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          last_activity?: string | null
+          priority?: string
+          remarks?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_emails: {
+        Row: {
+          body: string
+          cc_recipients: string[] | null
+          created_at: string
+          id: string
+          location_label: string | null
+          location_url: string | null
+          reply_to_id: string | null
+          sender_clerk_user_id: string
+          subject: string
+          tagged_user_ids: string[] | null
+          thread_id: string | null
+          to_recipients: string[]
+        }
+        Insert: {
+          body: string
+          cc_recipients?: string[] | null
+          created_at?: string
+          id?: string
+          location_label?: string | null
+          location_url?: string | null
+          reply_to_id?: string | null
+          sender_clerk_user_id: string
+          subject: string
+          tagged_user_ids?: string[] | null
+          thread_id?: string | null
+          to_recipients?: string[]
+        }
+        Update: {
+          body?: string
+          cc_recipients?: string[] | null
+          created_at?: string
+          id?: string
+          location_label?: string | null
+          location_url?: string | null
+          reply_to_id?: string | null
+          sender_clerk_user_id?: string
+          subject?: string
+          tagged_user_ids?: string[] | null
+          thread_id?: string | null
+          to_recipients?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_thread"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "user_emails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_emails_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "user_emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_updates: {
         Row: {
           clerk_user_id: string
@@ -100,7 +229,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_calendar_counts: {
+        Args: {
+          end_date: string
+          start_date: string
+          user_identifiers: string[]
+        }
+        Returns: {
+          completed: number
+          overdue_open: number
+          task_date: string
+          total: number
+        }[]
+      }
+      get_user_calendar_tasks: {
+        Args: {
+          end_date: string
+          start_date: string
+          user_identifiers: string[]
+        }
+        Returns: {
+          assigned_by: string
+          assigned_to: string
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          priority: string
+          remarks: string
+          status: string
+          title: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
