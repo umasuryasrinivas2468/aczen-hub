@@ -55,7 +55,7 @@ export default function TasksCalendar() {
     remarks: "",
   });
 
-  const [coworkers, setCoworkers] = useState<Array<{ id: string; clerk_user_id: string }>>([]);
+  const [coworkers, setCoworkers] = useState<Array<{ id: string; clerk_user_id: string; name?: string }>>([]);
 
   const userIdentifiers = useMemo(() => {
     if (!user) return [];
@@ -123,33 +123,17 @@ export default function TasksCalendar() {
 
   const fetchCoworkers = async () => {
     try {
-      const { data: workUpdates } = await supabase
-        .from("work_updates")
-        .select("clerk_user_id")
-        .limit(100);
+      const { data: profiles } = await (supabase as any)
+        .from("user_profiles")
+        .select("id, clerk_user_id, name, email");
 
-      const { data: punchData } = await supabase
-        .from("punches")
-        .select("clerk_user_id")
-        .limit(100);
-
-      const { data: leadData } = await supabase
-        .from("lead_uploads")
-        .select("clerk_user_id")
-        .limit(100);
-
-      const userIds = new Set<string>([
-        ...(workUpdates || []).map((u) => u.clerk_user_id),
-        ...(punchData || []).map((u) => u.clerk_user_id),
-        ...(leadData || []).map((u) => u.clerk_user_id),
-      ]);
-
-      userIdentifiers.forEach((identifier) => userIds.delete(identifier));
-
-      const coworkerOptions = Array.from(userIds).map((id) => ({
-        id,
-        clerk_user_id: id,
-      }));
+      const coworkerOptions = (profiles || [])
+        .filter((p: any) => !userIdentifiers.includes(p.clerk_user_id))
+        .map((p: any) => ({
+          id: p.id,
+          clerk_user_id: p.clerk_user_id,
+          name: p.name || p.clerk_user_id,
+        }));
 
       setCoworkers(coworkerOptions);
     } catch (err) {
@@ -427,12 +411,32 @@ export default function TasksCalendar() {
                         </Badge>
                       </div>
                       <div className="flex gap-2 items-center flex-wrap">
-                        <Badge
-                          variant="secondary"
-                          className={`text-xs ${getStatusBadgeVariant(task.status)}`}
+                        <Select
+                          value={task.status}
+                          onValueChange={async (value) => {
+                            const { error: updateError } = await supabase
+                              .from("tasks")
+                              .update({ status: value, last_activity: new Date().toISOString() })
+                              .eq("id", task.id);
+                            if (!updateError) {
+                              setTasks((prev) =>
+                                prev.map((t) =>
+                                  t.id === task.id ? { ...t, status: value as Task["status"] } : t
+                                )
+                              );
+                            }
+                          }}
                         >
-                          {task.status}
-                        </Badge>
+                          <SelectTrigger className="h-7 w-[140px] text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Assigned">Assigned</SelectItem>
+                            <SelectItem value="In Progress">In Progress</SelectItem>
+                            <SelectItem value="Completed">Completed</SelectItem>
+                            <SelectItem value="On Hold">On Hold</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       {task.remarks && (
                         <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
@@ -504,7 +508,7 @@ export default function TasksCalendar() {
                       key={coworker.id}
                       value={coworker.clerk_user_id}
                     >
-                      {coworker.clerk_user_id}
+                      {coworker.name || coworker.clerk_user_id}
                     </SelectItem>
                   ))}
                 </SelectContent>

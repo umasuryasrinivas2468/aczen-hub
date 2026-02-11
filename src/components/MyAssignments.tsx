@@ -6,6 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, CheckCircle, Clock, Zap } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import AssignToCoworker from "./AssignToCoworker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Task {
   id: string;
@@ -125,9 +132,32 @@ export default function MyAssignments() {
                   </Badge>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <Badge variant="secondary" className="text-xs">
-                    {task.status}
-                  </Badge>
+                  <Select
+                    value={task.status}
+                    onValueChange={async (value) => {
+                      const { error } = await supabase
+                        .from("tasks")
+                        .update({ status: value, last_activity: new Date().toISOString() })
+                        .eq("id", task.id);
+                      if (!error) {
+                        setTasks((prev) =>
+                          prev.map((t) =>
+                            t.id === task.id ? { ...t, status: value as Task["status"] } : t
+                          )
+                        );
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-7 w-[140px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Assigned">Assigned</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="On Hold">On Hold</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 {task.remarks && (
                   <p className="text-xs text-muted-foreground mt-2 line-clamp-2">

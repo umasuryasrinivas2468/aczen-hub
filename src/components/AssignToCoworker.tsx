@@ -27,6 +27,7 @@ import { AlertCircle, Plus } from "lucide-react";
 interface UserOption {
   id: string;
   clerk_user_id: string;
+  name?: string;
 }
 
 export default function AssignToCoworker() {
@@ -57,36 +58,24 @@ export default function AssignToCoworker() {
       setLoading(true);
       setError("");
 
-      // Fetch all unique clerk_user_ids from work_updates, punches, lead_uploads
-      const { data: workUpdates } = await supabase
-        .from("work_updates")
-        .select("clerk_user_id")
-        .limit(100);
+      const { data: profiles, error: profilesError } = await (supabase as any)
+        .from("user_profiles")
+        .select("id, clerk_user_id, name, email");
 
-      const { data: punchClerkUserIds } = await supabase
-        .from("punches")
-        .select("clerk_user_id")
-        .limit(100);
+      if (profilesError) {
+        console.error("Error fetching user_profiles:", profilesError);
+        setError("Failed to fetch coworkers. Please try again.");
+        setLoading(false);
+        return;
+      }
 
-      const { data: leadUploads } = await supabase
-        .from("lead_uploads")
-        .select("clerk_user_id")
-        .limit(100);
-
-      // Combine unique clerk_user_ids (excluding current user)
-      const userIds = new Set<string>([
-        ...(workUpdates || []).map((u) => u.clerk_user_id),
-        ...(punchClerkUserIds || []).map((u) => u.clerk_user_id),
-        ...(leadUploads || []).map((u) => u.clerk_user_id),
-      ]);
-
-      // Remove current user from the list
-      userIds.delete(user!.id);
-
-      const userOptions: UserOption[] = Array.from(userIds).map((id) => ({
-        id: id,
-        clerk_user_id: id,
-      }));
+      const userOptions: UserOption[] = (profiles || [])
+        .filter((p: any) => p.clerk_user_id !== user!.id)
+        .map((p: any) => ({
+          id: p.id,
+          clerk_user_id: p.clerk_user_id,
+          name: p.name || p.clerk_user_id,
+        }));
 
       setCoworkers(userOptions);
 
@@ -245,7 +234,7 @@ export default function AssignToCoworker() {
                 <SelectContent>
                   {coworkers.map((coworker) => (
                     <SelectItem key={coworker.id} value={coworker.clerk_user_id}>
-                      {coworker.clerk_user_id}
+                      {coworker.name || coworker.clerk_user_id}
                     </SelectItem>
                   ))}
                 </SelectContent>
