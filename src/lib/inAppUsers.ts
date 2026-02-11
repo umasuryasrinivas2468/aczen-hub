@@ -40,7 +40,7 @@ export async function loadInAppUsers(): Promise<InAppUser[]> {
   const users = new Map<string, InAppUser>();
 
   const [profilesResult, tasksResult, updatesResult, punchesResult, uploadsResult] = await Promise.all([
-    supabase.from("user_profiles").select("id, clerk_user_id, name, email"),
+    (supabase as any).from("user_profiles").select("id, clerk_user_id, name, email"),
     supabase.from("tasks").select("assigned_to, assigned_by"),
     supabase.from("work_updates").select("clerk_user_id"),
     supabase.from("punches").select("clerk_user_id"),

@@ -33,7 +33,7 @@ export default function ManageUsersDialog({ isOpen, onClose }: ManageUsersProps)
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("user_profiles")
         .select("*")
         .order("name", { ascending: true });
@@ -60,7 +60,7 @@ export default function ManageUsersDialog({ isOpen, onClose }: ManageUsersProps)
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("user_profiles").insert([
+      const { error } = await (supabase as any).from("user_profiles").insert([
         {
           clerk_user_id: newUser.clerk_user_id,
           name: newUser.name,
@@ -91,7 +91,7 @@ export default function ManageUsersDialog({ isOpen, onClose }: ManageUsersProps)
     if (!confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("user_profiles")
         .delete()
         .eq("id", userId);
