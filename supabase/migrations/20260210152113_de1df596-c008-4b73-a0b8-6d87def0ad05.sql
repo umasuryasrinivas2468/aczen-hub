@@ -5,6 +5,9 @@ CREATE TABLE public.punches (
   clerk_user_id TEXT NOT NULL,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT now(),
   status TEXT NOT NULL CHECK (status IN ('IN', 'OUT')),
+  verification_code VARCHAR(5),
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

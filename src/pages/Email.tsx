@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { Mail, MapPin, Reply, Send, Tag, Users } from "lucide-react";
+import { ChevronLeft, Mail, MapPin, Reply, Send, Tag, Users } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { loadInAppUsers, type InAppUser } from "@/lib/inAppUsers";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type MailTab = "inbox" | "sent" | "compose";
 
@@ -50,6 +51,7 @@ const initialCompose: ComposeState = {
 
 export default function EmailPage() {
   const { user } = useUser();
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState<MailTab>("inbox");
   const [users, setUsers] = useState<InAppUser[]>([]);
   const [emails, setEmails] = useState<EmailMessage[]>([]);
@@ -291,14 +293,16 @@ export default function EmailPage() {
   };
 
   const renderUserName = (id: string) => recipientMap.get(id)?.name || id;
+  const showThreadList = !isMobile || !selectedThreadId;
+  const showConversation = !isMobile || !!selectedThreadId;
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
-          <CardContent className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Email Center</h1>
+              <h1 className="text-xl font-bold text-foreground sm:text-2xl">Email Center</h1>
               <p className="mt-1 text-sm text-muted-foreground">Send, receive, reply, tag users, and attach location.</p>
             </div>
             <Badge variant="secondary" className="w-fit gap-1">
@@ -308,9 +312,9 @@ export default function EmailPage() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-wrap gap-2">
-          <Button variant={tab === "inbox" ? "default" : "outline"} onClick={() => setTab("inbox")}>Inbox</Button>
-          <Button variant={tab === "sent" ? "default" : "outline"} onClick={() => setTab("sent")}>Sent</Button>
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+          <Button variant={tab === "inbox" ? "default" : "outline"} onClick={() => setTab("inbox")} className="w-full sm:w-auto">Inbox</Button>
+          <Button variant={tab === "sent" ? "default" : "outline"} onClick={() => setTab("sent")} className="w-full sm:w-auto">Sent</Button>
           <Button
             variant={tab === "compose" ? "default" : "outline"}
             onClick={() => {
@@ -319,6 +323,7 @@ export default function EmailPage() {
               setCompose(initialCompose);
               setTab("compose");
             }}
+            className="w-full sm:w-auto"
           >
             Compose
           </Button>
@@ -327,81 +332,94 @@ export default function EmailPage() {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {tab !== "compose" && (
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-1">
-              <CardHeader><CardTitle>{tab === "inbox" ? "Inbox Threads" : "Sent Threads"}</CardTitle></CardHeader>
-              <CardContent className="max-h-[520px] space-y-2 overflow-y-auto">
-                {(loadingUsers || loadingEmails) && <p className="text-sm text-muted-foreground">Loading...</p>}
-                {!loadingEmails && visibleThreads.length === 0 && <p className="text-sm text-muted-foreground">No threads yet.</p>}
-                {visibleThreads.map((thread) => (
-                  <button
-                    key={thread.thread_id}
-                    onClick={() => setSelectedThreadId(thread.thread_id)}
-                    className={`w-full rounded-lg border p-3 text-left transition-colors ${
-                      selectedThreadId === thread.thread_id
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-card hover:bg-muted/40"
-                    }`}
-                  >
-                    <p className="truncate font-medium">{thread.subject}</p>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {renderUserName(thread.sender_clerk_user_id)} • {new Date(thread.created_at).toLocaleString()}
-                    </p>
-                  </button>
-                ))}
-              </CardContent>
-            </Card>
+          <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
+            {showThreadList && (
+              <Card className="lg:col-span-1">
+                <CardHeader><CardTitle>{tab === "inbox" ? "Inbox Threads" : "Sent Threads"}</CardTitle></CardHeader>
+                <CardContent className="max-h-[65vh] space-y-2 overflow-y-auto lg:max-h-[520px]">
+                  {(loadingUsers || loadingEmails) && <p className="text-sm text-muted-foreground">Loading...</p>}
+                  {!loadingEmails && visibleThreads.length === 0 && <p className="text-sm text-muted-foreground">No threads yet.</p>}
+                  {visibleThreads.map((thread) => (
+                    <button
+                      key={thread.thread_id}
+                      onClick={() => setSelectedThreadId(thread.thread_id)}
+                      className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                        selectedThreadId === thread.thread_id
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:bg-muted/40"
+                      }`}
+                    >
+                      <p className="truncate font-medium">{thread.subject}</p>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {renderUserName(thread.sender_clerk_user_id)} - {new Date(thread.created_at).toLocaleString()}
+                      </p>
+                    </button>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
-            <Card className="lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Conversation</CardTitle>
-                <Button variant="outline" size="sm" className="gap-2" onClick={startReply} disabled={!selectedThreadId}>
-                  <Reply className="h-4 w-4" />
-                  Reply
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {!selectedThreadId && <p className="text-sm text-muted-foreground">Select a thread.</p>}
-                {activeThreadMails.map((mail) => (
-                  <div key={mail.id} className="rounded-lg border border-border bg-card p-3">
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{mail.subject}</p>
-                        <p className="text-xs text-muted-foreground">
-                          From: {renderUserName(mail.sender_clerk_user_id)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          To: {mail.to_recipients.map(renderUserName).join(", ")}
-                        </p>
-                        {mail.cc_recipients.length > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            CC: {mail.cc_recipients.map(renderUserName).join(", ")}
-                          </p>
-                        )}
-                        {mail.tagged_user_ids.length > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            Tags: {mail.tagged_user_ids.map(renderUserName).join(", ")}
-                          </p>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{new Date(mail.created_at).toLocaleString()}</p>
+            {showConversation && (
+              <Card className="lg:col-span-2">
+                <CardHeader className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {isMobile && selectedThreadId && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedThreadId(null)}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <CardTitle>Conversation</CardTitle>
                     </div>
-                    <p className="whitespace-pre-wrap text-sm">{mail.body}</p>
-                    {mail.location_url && (
-                      <a className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline" href={mail.location_url} target="_blank" rel="noreferrer">
-                        <MapPin className="h-3 w-3" />
-                        {mail.location_label || "Attached location"}
-                      </a>
-                    )}
+                    <Button variant="outline" size="sm" className="gap-2" onClick={startReply} disabled={!selectedThreadId}>
+                      <Reply className="h-4 w-4" />
+                      Reply
+                    </Button>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {!selectedThreadId && <p className="text-sm text-muted-foreground">Select a thread.</p>}
+                  {activeThreadMails.map((mail) => (
+                    <div key={mail.id} className="rounded-lg border border-border bg-card p-3">
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{mail.subject}</p>
+                          <p className="text-xs text-muted-foreground">
+                            From: {renderUserName(mail.sender_clerk_user_id)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            To: {mail.to_recipients.map(renderUserName).join(", ")}
+                          </p>
+                          {mail.cc_recipients.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              CC: {mail.cc_recipients.map(renderUserName).join(", ")}
+                            </p>
+                          )}
+                          {mail.tagged_user_ids.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              Tags: {mail.tagged_user_ids.map(renderUserName).join(", ")}
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{new Date(mail.created_at).toLocaleString()}</p>
+                      </div>
+                      <p className="whitespace-pre-wrap text-sm">{mail.body}</p>
+                      {mail.location_url && (
+                        <a className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline" href={mail.location_url} target="_blank" rel="noreferrer">
+                          <MapPin className="h-3 w-3" />
+                          {mail.location_label || "Attached location"}
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
         {tab === "compose" && (
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
             <Card className="lg:col-span-1">
               <CardHeader><CardTitle>Select Users</CardTitle></CardHeader>
               <CardContent className="space-y-3">
@@ -466,7 +484,7 @@ export default function EmailPage() {
                     </a>
                   )}
                 </div>
-                <Button onClick={sendEmail} disabled={sending} className="gap-2">
+                <Button onClick={sendEmail} disabled={sending} className="w-full gap-2 sm:w-auto">
                   <Send className="h-4 w-4" />
                   {sending ? "Sending..." : "Send Email"}
                 </Button>

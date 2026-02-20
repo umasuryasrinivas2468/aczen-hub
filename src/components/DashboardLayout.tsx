@@ -1,7 +1,11 @@
+import { useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Upload, LogOut, Zap, ListTodo, Calendar, MessageSquare, Mail } from "lucide-react";
+import { Calendar, LayoutDashboard, ListTodo, LogOut, Mail, Menu, MessageSquare, Upload, Zap } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const navItems = [
   { label: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -17,67 +21,171 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+
+  const userInitial = user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase() || "U";
+  const userDisplayName = user?.fullName || user?.emailAddresses?.[0]?.emailAddress || "User";
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-        <div className="p-6 flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <Zap className="h-4 w-4 text-primary-foreground" />
+    <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen">
+        <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar md:flex md:flex-col">
+          <div className="flex items-center gap-2 p-6">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <Zap className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-bold text-sidebar-foreground">Aczen Connect</span>
           </div>
-          <span className="text-lg font-bold text-sidebar-foreground">Aczen Connect</span>
-        </div>
 
-        <nav className="flex-1 px-3 space-y-1">
-          {navItems.map((item) => {
+          <nav className="flex-1 space-y-1 px-3">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-primary"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="border-t border-sidebar-border p-4">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-foreground">
+                {userInitial}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-sidebar-foreground">{userDisplayName}</p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              onClick={() => signOut(() => navigate("/login"))}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </Button>
+          </div>
+        </aside>
+
+        <div className="flex min-h-screen flex-1 flex-col">
+          <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur md:hidden">
+            <div className="flex h-14 items-center justify-between px-4">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+                  <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+                <span className="text-sm font-semibold">Aczen Connect</span>
+              </div>
+
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-semibold">{userInitial}</div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-auto">
+            <div className="mx-auto w-full max-w-6xl px-4 py-4 pb-24 sm:px-6 sm:py-6 md:px-8 md:pb-8">{children}</div>
+          </main>
+        </div>
+      </div>
+
+      <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+        <SheetContent side="left" className="w-[84vw] max-w-sm border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground [&>button]:text-sidebar-foreground">
+          <SheetTitle className="sr-only">Mobile Navigation</SheetTitle>
+          <div className="flex h-full flex-col">
+            <div className="flex items-center gap-2 border-b border-sidebar-border p-5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                <Zap className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="text-lg font-bold">Aczen Connect</span>
+            </div>
+
+            <nav className="flex-1 space-y-1 px-3 py-4">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-base font-medium",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-primary"
+                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="border-t border-sidebar-border p-4">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-accent text-sm font-semibold text-sidebar-foreground">
+                  {userInitial}
+                </div>
+                <p className="truncate text-sm font-medium">{userDisplayName}</p>
+              </div>
+              <Button
+                variant="secondary"
+                className="w-full justify-center gap-2"
+                onClick={() => signOut(() => navigate("/login"))}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-1 pb-1 pt-2 backdrop-blur md:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
+          {navItems.slice(0, 5).map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                }`}
+                className={cn(
+                  "flex min-h-[52px] flex-col items-center justify-center rounded-xl px-1 text-[11px] font-medium",
+                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/70",
+                )}
               >
-                <item.icon className="h-4 w-4" />
-                {item.label}
+                <item.icon className="mb-1 h-4 w-4" />
+                <span className="truncate">{item.label}</span>
               </button>
             );
           })}
-        </nav>
-
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-semibold text-sidebar-foreground">
-              {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase() || "U"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {user?.fullName || user?.emailAddresses?.[0]?.emailAddress || "User"}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={() => signOut(() => navigate("/login"))}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign out
-          </Button>
         </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-5xl mx-auto p-8">
-          {children}
-        </div>
-      </main>
+      </nav>
     </div>
   );
 }

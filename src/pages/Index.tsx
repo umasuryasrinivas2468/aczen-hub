@@ -9,9 +9,9 @@ import TasksCalendar from "@/components/TasksCalendar";
 export default function Index() {
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">Welcome back. Here's your daily overview.</p>
         </div>
 
@@ -19,7 +19,7 @@ export default function Index() {
 
         <MyWeeklySummary />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
           <PunchCard />
           <WorkUpdateCard />
         </div>

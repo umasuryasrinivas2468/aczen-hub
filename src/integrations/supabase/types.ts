@@ -76,22 +76,31 @@ export type Database = {
           clerk_user_id: string
           created_at: string
           id: string
+          latitude: number | null
+          longitude: number | null
           status: string
           timestamp: string
+          verification_code: string | null
         }
         Insert: {
           clerk_user_id: string
           created_at?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           status: string
           timestamp?: string
+          verification_code?: string | null
         }
         Update: {
           clerk_user_id?: string
           created_at?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           status?: string
           timestamp?: string
+          verification_code?: string | null
         }
         Relationships: []
       }
